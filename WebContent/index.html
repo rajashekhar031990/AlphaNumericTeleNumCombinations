@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script> 
+			var indexPrev = 1, pageCount = 15, results = null, indexNext;
+			var eleResults = null;
+				
+			function generatePermitations(){
+				var phoneNumber = document.getElementById("phoneNumber").value;
+				/*if((phoneNumber.length != 7 && phoneNumber.length != 10) || isNaN(phoneNumber) == true){
+					alert("Phone Number should be in digits and shold have 7 or 10 numbers in it");
+					return;
+					
+				}*/
+				eleResults = document.getElementById("results");
+				eleResults.innerHTML = "";			 
+				indexPrev = 1;
+				getData(phoneNumber, indexPrev);
+				document.getElementById("totalCount").innerHTML = results.totalCount;
+				indexNext = pageCount > results.totalCount ? results.totalCount : pageCount;
+				displayResults();
+			}
+			
+			function displayResults(){
+				eleResults = document.getElementById("results");
+				eleResults.innerHTML = "";
+				var i = 0;
+				while(i < results.phoneNumbers.length){
+					eleResults.innerHTML += results.phoneNumbers[i++] + "<br>";
+				}
+
+				document.getElementById("backNumber").innerHTML = indexPrev;
+				document.getElementById("nextNumber").innerHTML = indexNext;
+			}
+			
+			function navigatePage(direction){
+				if(direction == "next"){
+					if(indexNext + pageCount < results.totalCount){
+						indexPrev = indexNext + 1;
+						indexNext += pageCount;
+					}else 
+						if(indexNext != results.totalCount){
+						indexPrev = indexNext + 1; 
+						indexNext = results.totalCount; 
+					}
+				}else{
+					if(indexPrev - pageCount > 0){
+						indexNext = indexPrev - 1;
+						indexPrev -= pageCount;
+					}else if(indexPrev != 1){
+						indexNext = indexPrev - 1; 
+						indexPrev = 1; 
+					}
+				}
+				getData(results.phoneNumber, indexPrev);			
+				displayResults();
+			}
+			
+			function getData(phoneNumber, prev){
+			//alert(phoneNumber + " " + prev);
+			var http = new XMLHttpRequest();
+			results = null;
+			http.onreadystatechange = function(){
+				//alert(http.readyState + " " + http.status);
+				if(http.readyState == 4 && http.status == 200){
+					//alert(http.responseText);
+					results = JSON.parse(http.responseText);
+				}
+			};
+			
+			http.open("GET", "http://localhost:8086/AlphaNumericTeleNumCombinations/GetData?phoneNumber="+ phoneNumber + "&offset="+ (prev - 1) + "&next=" + pageCount, false);
+			http.send(null);
+		} 
+		
+		</script>
+		<style>
+			#container{
+				width: 50%;
+				margin:0 auto;
+				/*border:1px solid lightgray;*/
+				text-align:center;
+				height:90%;
+				font-size:18px;
+				font-weight:bolder;
+			}
+			
+			#btnRun{
+				cursor:pointer;
+				border:1px solid gray;
+				border-radius:2px;
+				width:100px;
+				margin:0 auto;
+				height:25px;
+				line-height:25px;
+				vertical-align:middle;
+				font-size:20px;
+				background-color:skyblue;
+			}
+			
+			#btnRun:hover, #next, #prev{
+				opacity:0.8;
+			}
+			
+			#totalCount{
+				color:red;
+				font-size:20px;
+			}
+			
+			#phoneNumber{
+				outline:none;
+				height:20px;
+				line-height:20px;
+				vertical-align:middle;
+				font-size:16px;
+				width:100px;
+			}
+			
+			#resultsContainer{
+				height:320px;
+				overflow:auto;
+				border:1px solid gray;	
+				text-align:left;		
+				position:relative;
+				font-weight:normal;
+			}
+			
+			#lblTotalCount{
+				text-align:left;
+			}
+			
+			.arrow{
+				margin-left:20px;
+				float:left;
+				cursor:pointer;
+			}
+			
+			#arrowNumberContainer{
+				position:absolute; 
+				top:10px;
+				right:10px;
+				float:right;
+				color:gray;
+			}
+			
+			#arrowContainer{ 
+				color:blue;
+				position:absolute; 
+				right:10px;
+				bottom:10px;
+				float:right;
+				-webkit-user-select: none;
+			    -moz-user-select: none;
+			    -ms-user-select: none;
+			    user-select: none;
+				font-weight:bolder;
+			}
+		</style>
+	</head>
+	<body onload="runOnLoad();">
+		<div id="container">
+			<h2>Generate AlphaNumeric Phone Numbers</h2>
+			<br>
+			<div>Enter Phone Number: <input type="text" value="1234567" id="phoneNumber" /></div>
+			<br>
+			<div onclick="generatePermitations()" id="btnRun">Run</div>
+			<br>
+			<br>
+			<div id="lblTotalCount">Total number of combinations: <span id="totalCount"></span></div>
+			<div id="resultsContainer">
+				<div  id="arrowNumberContainer">
+					<div id="backNumber" class="arrow">0</div>
+					<div  class="arrow" id="nextNumber">0</div>
+				</div>
+				<div id="arrowContainer">
+					<div id="prev" class="arrow" onclick="navigatePage('prev');">&lt;&lt;Prev</div>
+					<div id="next" class="arrow" onclick="navigatePage('next');">Next&gt;&gt;</div>
+				</div>
+				<div id="results"></div>								
+			</div>
+		</div>
+	</body>
+</html>
